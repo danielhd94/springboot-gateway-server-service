@@ -1,3 +1,26 @@
+# Configuración del Circuit Breaker y TimeLimiter
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 6
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 20s
+        permitted-number-of-calls-in-half-open-state: 4
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+    instances:
+      products:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 2s
+    instances:
+      products:
+        base-config: default
+
+
 spring:
   cloud:
     gateway:
@@ -7,6 +30,11 @@ spring:
         predicates:
           - Path=/api/products/**
         filters:
+          - name: CircuitBreaker
+            args:
+              name: products
+              statusCodes: 500
+              fallbackUri: forward:/api/items/detail/9/quantity/5
           - StripPrefix=2
           - cookies=Hola mi mensaje personalizado, user, danielh.dev
       - id: items-service
